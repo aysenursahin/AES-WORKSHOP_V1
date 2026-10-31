@@ -1,0 +1,25 @@
+AES WORKSHOP - HAZIR KOMUTLAR
+=============================
+Komutları kopyalayıp masaüstündeki "Proje Terminali" penceresine yapıştırın.
+
+
+[Bölüm 0] Makinenin hostname'i
+hostname
+
+[Bölüm 0] AES servisinin çalıştığını kontrol et
+Get-Service | Where-Object { $_.DisplayName -like "*Koi*" }
+
+
+[Bölüm 3] İzin verilen bir paketi kur
+cd C:\Projeler\bogazici-web
+npm install chalk
+
+[Bölüm 3] Policy ile engellenmiş paketi kurmayı dene
+npm install buttoncontent
+
+[Bölüm 3] Paketin diske inmediğini kontrol et (sonuç: False)
+Test-Path .\node_modules\buttoncontent
+
+
+[Bölüm 7] Kurulu VS Code extension'larını listele
+code --list-extensions
