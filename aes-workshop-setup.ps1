@@ -54,7 +54,8 @@ param(
     # Koi Root CA dosyasinin yolu (.pem). Deployment portal > Network Integration >
     # Establish Network Trust > Download CA. Chrome Web Store / VS Code Marketplace
     # trafigi Koi proxy'sinden gecerken makinenin bu baglantiya guvenmesi icin gerekir.
-    # Bos birakilirsa atlanir.
+    # Bos birakilirsa repodaki certs\ klasorundeki .pem/.cer/.crt dosyasi kullanilir;
+    # orada da yoksa bu adim atlanir.
     [string]$KoiRootCaFile = "",
 
     # Koi PAC dosyasi URL'i (deployment portal > Network Integration).
@@ -313,6 +314,16 @@ if ($PypiGatewayUrl) {
 # Kurulumlar bittikten SONRA yapilir; boylece hazirlik sirasindaki extension
 # kurulumlari Koi proxy'sinden gecmez.
 # ---------------------------------------------------------------------------
+# Parametre verilmediyse repodaki certs\ klasorundeki sertifikayi kullan
+if (-not $KoiRootCaFile) {
+    $repoCa = Get-ChildItem -Path (Join-Path $PSScriptRoot "certs") -File -ErrorAction SilentlyContinue |
+        Where-Object { @(".pem", ".cer", ".crt") -contains $_.Extension.ToLower() } | Select-Object -First 1
+    if ($repoCa) {
+        $KoiRootCaFile = $repoCa.FullName
+        Write-Host "`n==> Repodaki sertifika kullaniliyor: certs\$($repoCa.Name)" -ForegroundColor Cyan
+    }
+}
+
 if ($KoiRootCaFile) {
     Invoke-Step "Koi Root CA -> Trusted Root Certification Authorities" {
         if (-not (Test-Path $KoiRootCaFile)) { throw "CA dosyasi bulunamadi: $KoiRootCaFile" }
