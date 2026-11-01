@@ -10,16 +10,16 @@ Akış kısaca şöyle: tek bir **base makine** kurulur, ondan **AMI** alınır,
 | --- | --- | --- |
 | `aes-workshop-setup.ps1` | Uygulamaları, extension'ları, örnek projeleri, MCP config'lerini kurar; npm/pip'i Koi gateway'ine yönlendirir | Base makine |
 | `komutlar.txt` | Katılımcıların masaüstündeki hazır komutlar | Base makine (setup kopyalar) |
-| `aws/00-create-ssm-role.ps1` | SSM için IAM rolü ve instance profile | Eğitmen bilgisayarı |
-| `aws/01-create-ami.ps1` | Base makineden AMI alır | Eğitmen bilgisayarı |
-| `aws/02-launch-instances.ps1` | AMI'den `WS-USER01`, `WS-USER02`… makinelerini açar | Eğitmen bilgisayarı |
-| `aws/03-rename-hosts.ps1` | Her makinenin hostname'ini kendi adına çevirir | Eğitmen bilgisayarı |
-| `aws/04-install-koi.ps1` | Koi'yi tüm makinelere kurar | Eğitmen bilgisayarı |
-| `aws/05-check.ps1` | Tüm makinelerin hazır olduğunu kontrol eder | Eğitmen bilgisayarı |
-| `aws/06-update-komutlar.ps1` | Güncel `komutlar.txt`'yi tüm masaüstlerine dağıtır | Eğitmen bilgisayarı |
-| `aws/07-list-instances.ps1` | Katılımcı listesini (`participants.csv`) çıkarır | Eğitmen bilgisayarı |
-| `aws/08-power.ps1` | Makineleri başlatır / durdurur | Eğitmen bilgisayarı |
-| `aws/99-cleanup.ps1` | Workshop sonrası makineleri (ve istenirse AMI'yi) siler | Eğitmen bilgisayarı |
+| `aws/00-create-ssm-role.ps1` | SSM için IAM rolü ve instance profile | CloudShell veya eğitmen bilgisayarı |
+| `aws/01-create-ami.ps1` | Base makineden AMI alır | CloudShell veya eğitmen bilgisayarı |
+| `aws/02-launch-instances.ps1` | AMI'den `WS-USER01`, `WS-USER02`… makinelerini açar | CloudShell veya eğitmen bilgisayarı |
+| `aws/03-rename-hosts.ps1` | Her makinenin hostname'ini kendi adına çevirir | CloudShell veya eğitmen bilgisayarı |
+| `aws/04-install-koi.ps1` | Koi'yi tüm makinelere kurar | CloudShell veya eğitmen bilgisayarı |
+| `aws/05-check.ps1` | Tüm makinelerin hazır olduğunu kontrol eder | CloudShell veya eğitmen bilgisayarı |
+| `aws/06-update-komutlar.ps1` | Güncel `komutlar.txt`'yi tüm masaüstlerine dağıtır | CloudShell veya eğitmen bilgisayarı |
+| `aws/07-list-instances.ps1` | Katılımcı listesini (`participants.csv`) çıkarır | CloudShell veya eğitmen bilgisayarı |
+| `aws/08-power.ps1` | Makineleri başlatır / durdurur | CloudShell veya eğitmen bilgisayarı |
+| `aws/99-cleanup.ps1` | Workshop sonrası makineleri (ve istenirse AMI'yi) siler | CloudShell veya eğitmen bilgisayarı |
 
 ## Lab rehberi
 
@@ -27,34 +27,56 @@ Katılımcılara dağıtılan rehber: [`docs/AES Workshop Lab Rehberi v1.docx`](
 
 ## Gereksinimler
 
-**Eğitmen bilgisayarı**
-- Windows PowerShell 5.1 veya üzeri
-- [AWS CLI v2](https://aws.amazon.com/cli/), `aws configure` ile yapılandırılmış
-
 **AWS**
-- Internete çıkışı olan bir public subnet
-- Bir security group: RDP (3389) sadece workshop salonunun IP'sinden, giden 443 açık
-- Windows base instance (`t3.large` yeterli)
+- Bir AWS hesabı ve konsola giriş. Hesabı e-postanızla açtıysanız giriş ekranında **Sign in using root user email** seçin; **IAM user** ekranı Account ID ve kullanıcı adı ister.
+- Tüm kaynaklar aynı bölgede, örnek: **Europe (Frankfurt) eu-central-1**
 
-**Koi**
-- Deployment Portal'daki Windows kurulum komutu (Manual → Windows → Installed → Script Package)
-- npm ve PyPI gateway adresleri: `https://koi-npmjs-<customer_subdomain>.gateway.koi.security` ve `https://koi-pypi-<customer_subdomain>.gateway.koi.security`
-- Tenant'ta code package prevention açılmış olmalı (Koi irtibat kişisi açar)
+**AES (Koi) tenant'ı**
+- Code package prevention açık olmalı (Koi irtibat kişisi açar)
+- npm global block list'te `buttoncontent` paketi (lab rehberi Bölüm 3); eklendikten sonra yayılması 60 dakikaya kadar sürebilir
+- Deployment Portal'dan:
+  - Windows kurulum komutu: **Manual → Windows → Installed → Script Package**
+  - npm ve PyPI gateway adresleri: `https://koi-npmjs-<customer_subdomain>.gateway.koi.security`, `https://koi-pypi-<customer_subdomain>.gateway.koi.security`
+  - PAC dosyası URL'i: **Network Integration**
+  - Koi Root CA: **Network Integration → Establish Network Trust → Download CA**. Bu repoda [`certs/`](certs/) altında hazır.
 
 ---
 
-## 1. Base makineyi hazırla
+## 1. Base makineyi oluştur (AWS konsolu)
 
-EC2'de Windows instance açın ve `Administrator` ile RDP yapın. Katılımcıların kullanacağı hesabı oluşturun:
+EC2 → **Launch instance**:
+
+| Ayar | Değer |
+| --- | --- |
+| Name | `aes-base` |
+| Application and OS Images | **Windows** → **Microsoft Windows Server 2022 Base** |
+| Instance type | `t3.large` (2 vCPU, 8 GB RAM) |
+| Key pair | **Create new key pair** → `aes-workshop-key`, RSA, `.pem`. Dosyayı saklayın; Administrator şifresini çözmek için gerekir. |
+| Network settings → Edit | Default VPC, **Auto-assign public IP: Enable**, **Create security group** `aes-workshop-sg`, RDP kuralının **Source type: My IP** |
+| Configure storage | **60 GiB gp3** |
+
+**Launch instance** → makine **Running** ve **2/2 checks passed** olana kadar bekleyin (5–10 dakika).
+
+**Bağlanmak için:** makineyi seçin → **Connect → RDP client** → **Get password** (`.pem` dosyasını yükleyin) → **Download remote desktop file**. Kullanıcı adı `Administrator`.
+- **Windows:** `.rdp` dosyasını açın (Remote Desktop Connection).
+- **Mac:** App Store'dan **Windows App**'i kurun, `.rdp` dosyasına çift tıklayın. Türkçe klavyede `@`, `\` gibi karakterler yanlış tuşa denk gelebilir; komutları yazmak yerine yapıştırın.
+
+**Katılımcı hesabını oluşturun** (yönetici PowerShell'de). Şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve özel karakter içermeli:
 
 ```powershell
-net user wsuser <sifre> /add
-net localgroup administrators wsuser /add
+$pw = Read-Host "wsuser sifresi" -AsSecureString
+New-LocalUser -Name wsuser -Password $pw -PasswordNeverExpires
+Add-LocalGroupMember -Group Administrators -Member wsuser
 ```
 
-Oturumu kapatıp **`wsuser` ile** tekrar RDP yapın. Yönetici olarak açılmış PowerShell'de:
+Administrator oturumunu kapatın ve **`wsuser` ile** tekrar bağlanın (Windows App'te makine kartı → **Edit → Credentials**).
+
+## 2. Base makineyi hazırla (`wsuser` ile)
+
+**Yönetici olarak açılmış PowerShell'de** (`<...>` alanlarını doldurun):
 
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Set-ExecutionPolicy Bypass -Scope Process -Force
 $zip = "$env:TEMP\aes-workshop.zip"
 irm https://github.com/aysenursahin/aes-workshop_v1/archive/refs/heads/main.zip -OutFile $zip
@@ -62,95 +84,131 @@ Expand-Archive $zip -DestinationPath "$env:TEMP\aes-workshop" -Force
 & "$env:TEMP\aes-workshop\aes-workshop_v1-main\aes-workshop-setup.ps1" `
     -KoiConsoleUrl  "https://<konsol-adresi>" `
     -NpmGatewayUrl  "https://koi-npmjs-<customer_subdomain>.gateway.koi.security" `
-    -PypiGatewayUrl "https://koi-pypi-<customer_subdomain>.gateway.koi.security"
+    -PypiGatewayUrl "https://koi-pypi-<customer_subdomain>.gateway.koi.security" `
+    -PacUrl         "<PAC dosyasi URL'i>"
 ```
 
-**Koi Root CA:** Script, repodaki [`certs/`](certs/) klasöründeki `.pem` dosyasını otomatik olarak makinenin Trusted Root deposuna ekler. Sertifika Chrome Web Store ve VS Code Marketplace'teki Request Approval deneyimi (lab rehberi Bölüm 1–2) için gereklidir; npm/pip için gerekmez. Başka bir dosya kullanmak için `-KoiRootCaFile "<yol>"` parametresini ekleyin.
+Kurulum 15–20 dakika sürer. Script:
+- Chrome, VS Code, Node.js, Python, Git, VS Code extension'ları, Claude Code ve Codex CLI'ı kurar
+- Örnek projeleri, MCP config'lerini, örnek skill'i ve sahte `.env` dosyasını oluşturur
+- npm ve pip'i Koi gateway'ine yönlendirir
+- [`certs/`](certs/) klasöründeki **Koi Root CA**'yı makinenin Trusted Root deposuna ekler (başka bir dosya için `-KoiRootCaFile "<yol>"`)
+- **PAC dosyasını** `wsuser`'ın proxy ayarlarına yazar
+- Masaüstüne `komutlar.txt`, **AES Konsol** ve **Proje Terminali** kısayollarını koyar
 
-**PAC dosyası:** AES konsolunda **Settings → Advanced Settings → Network integration (Proxy)** altında **Deploy with KOI** seçiliyse PAC dosyasını Koi'nin script paketi kendisi kurar. Kendiniz dağıtmak isterseniz script'e `-PacUrl "<PAC URL>"` ekleyin (Deployment Portal → Network Integration).
+> **PAC dosyası:** `-PacUrl` vermek yerine AES konsolunda **Settings → Advanced Settings → Network integration (Proxy) → Deploy with KOI** seçerseniz PAC'i Koi'nin script paketi kurar. Ancak o zaman PAC, AES kurulana kadar (5. adım) devreye girmez ve aşağıdaki `/koi` kontrolünü base makinede yapamazsınız.
 
-> Script'i **`wsuser` ile** çalıştırın. VS Code extension'ları, MCP config'leri ve skill dosyası script'i çalıştıran kullanıcının profiline yazılır.
+Sondaki kontrol listesinde her satır `[OK]` olmalı; özellikle **Koi Root CA guvenilir**, **PAC dosyasi ayarli**, **npm registry = Koi gateway** ve **pip.ini = Koi gateway**. Script güvenle tekrar çalıştırılabilir.
 
-Script bittiğinde sondaki kontrol listesinde her satır `[OK]` olmalı. Ardından elle:
+**Ardından elle:**
 
-1. [Claude Desktop](https://claude.ai/download) ve [Cursor](https://cursor.com/download) kurun (giriş yapmanıza gerek yok).
-2. Chrome'a 3–4 popüler extension kurun. Workshop'ta **Request Approval** gösterilecek extension'ı **kurmayın**.
-3. Chrome ve VS Code'u bir kez açıp ilk açılış ekranlarını kapatın.
-4. Makineyi yeniden başlatın.
+1. **Claude Desktop** ve **Cursor**'u kurun: [claude.ai/download](https://claude.ai/download), [cursor.com/download](https://cursor.com/download). Cursor için **User Setup, x64** sürümü. İkisini de `wsuser` ile kurun.
+2. Uygulamaları (Chrome, VS Code, Cursor, Claude Desktop) bir kez açıp ilk açılış ekranlarını kapatın. Giriş ekranı çıkarsa **giriş yapmayın** (aşağıdaki uyarıya bakın).
+3. **Koi proxy'sini doğrulayın:** Chrome'u kapatıp açın ve `https://marketplace.visualstudio.com/koi` adresine gidin.
+   - Koi'nin zeplin görselli sayfası → doğru.
+   - Sertifika hatası → Koi Root CA kurulmamış.
+   - Normal marketplace sayfası → PAC uygulanmamış.
+4. **Chrome'a 3–4 popüler extension kurun.** PAC devrede olduğu için bu kurulumlar Koi'den geçer; bu, lab rehberi Bölüm 1'in provasıdır. **Request Approval** çıkan extension'ı kurmayın; adını Bölüm 2 için not edin.
+5. Makineyi yeniden başlatın.
 
-> **Base makineye Koi kurmayın.** Koi kurulu bir makineden AMI alırsanız tüm klonlar aynı cihaz kimliğini taşıyabilir ve konsolda tek makine gibi görünür. Koi, 4. adımda her makineye ayrı kurulur.
+> **Base makineye bunları KOYMAYIN.** Base makinede ne varsa AMI ile tüm katılımcı makinelerine kopyalanır:
+> - **AES/Koi:** Klonlar aynı cihaz kimliğini taşıyabilir ve konsolda tek makine gibi görünür. AES 5. adımda her makineye ayrı kurulur.
+> - **Kişisel hesaplar:** Cursor, Claude Desktop, Chrome veya GitHub'da giriş yapmayın; oturumunuz tüm katılımcılara kopyalanır.
+> - **AWS anahtarları:** `aws/` script'lerini base makinede çalıştırmayın (3. adım).
 
-## 2. AWS ayarlarını yap
+## 3. AWS ayarlarını yap (base makinede DEĞİL)
 
-Eğitmen bilgisayarında:
+`aws/` script'leri AWS anahtarı gerektirir ve `01` base makineyi yeniden başlatır. Bu yüzden base makine dışında bir yerde çalıştırın.
 
-```powershell
+**Seçenek A: AWS CloudShell (önerilen).** AWS konsolunda sağ üstteki **`>_`** simgesi. AWS CLI ve PowerShell hazır gelir, hesabınızla oturum açıktır; access key gerekmez. Bölgenin doğru olduğundan emin olun.
+
+```bash
 git clone https://github.com/aysenursahin/aes-workshop_v1.git
-cd aes-workshop_v1\aws
-Set-ExecutionPolicy Bypass -Scope Process -Force
-
-Copy-Item config.example.ps1 config.ps1
-Copy-Item koi-install-command.example.ps1 koi-install-command.ps1
+cd aes-workshop_v1/aws
+cp config.example.ps1 config.ps1
+cp koi-install-command.example.ps1 koi-install-command.ps1
+nano config.ps1                     # kaydet: Ctrl+O, Enter; çık: Ctrl+X
+nano koi-install-command.ps1
+pwsh
 ```
 
-- `config.ps1`: bölge, subnet, security group, base instance ID ve katılımcı sayısını doldurun.
-- `koi-install-command.ps1`: Deployment Portal'daki kurulum komutunu yapıştırın.
+**Seçenek B: Kendi bilgisayarınız.**
+- **Windows:** [AWS CLI v2](https://awscli.amazonaws.com/AWSCLIV2.msi) kurun. Repoyu `git clone` ile ya da zip olarak indirin. Script'lerden önce `Set-ExecutionPolicy Bypass -Scope Process -Force`.
+- **Mac:** `brew install awscli` ve `brew install --cask powershell`, sonra `pwsh`. `Set-ExecutionPolicy` gerekmez; yollarda `/` kullanın.
+- Her ikisinde de: IAM → Users → kullanıcınız → **Security credentials → Create access key**, ardından `aws configure` (bölge: `eu-central-1`, çıktı: `json`).
+
+**`config.ps1`** (değerler EC2'de base makinenin detaylarında):
+
+| Ayar | Nereden |
+| --- | --- |
+| `$Region` | Base makinenin bölgesi, örn. `eu-central-1` |
+| `$BaseInstanceId` | **Instance ID** (`i-...`) |
+| `$SubnetId` | **Networking** sekmesi → **Subnet ID** (`subnet-...`) |
+| `$SecurityGroupId` | **Security** sekmesi → `aes-workshop-sg` ID'si (`sg-...`) |
+| `$ParticipantCount` / `$SpareCount` | **İlk denemede `1` ve `0`.** Pilot makine sorunsuzsa artırın (5. adım). |
+
+**`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın.
 
 Bu iki dosya `.gitignore`'da; GitHub'a yüklenmez. Sonra bir kere:
 
 ```powershell
-.\00-create-ssm-role.ps1
+./00-create-ssm-role.ps1
 ```
 
-## 3. AMI al
+IAM değişikliklerinin yayılması için 1–2 dakika bekleyin.
+
+## 4. AMI al
 
 ```powershell
-.\01-create-ami.ps1
+./01-create-ami.ps1
 ```
 
-Base makine bu sırada yeniden başlar. AMI hazır olana kadar 15–30 dakika sürebilir.
+Script önce kontrol soruları sorar. Base makine bu sırada yeniden başlar ve RDP bağlantısı kopar. AMI'nin hazır olması 15–30 dakika sürer.
 
-## 4. Katılımcı makinelerini aç ve Koi'yi kur
+## 5. Katılımcı makinelerini aç ve AES'i kur
+
+**Önce tek makineyle pilot** (`config.ps1`'de `$ParticipantCount = 1`, `$SpareCount = 0`):
 
 ```powershell
-.\02-launch-instances.ps1          # WS-USER01 ... (katılımcı + yedek)
-.\03-rename-hosts.ps1              # hostname'leri değiştirir, makineleri yeniden başlatır
-.\04-install-koi.ps1 -Only WS-USER01   # önce tek makinede deneyin
-.\04-install-koi.ps1               # sonra hepsine
+./02-launch-instances.ps1          # WS-USER01
+./03-rename-hosts.ps1              # hostname'i değiştirir, makineyi yeniden başlatır
+./04-install-koi.ps1               # AES'i kurar
 ```
 
-İlk makinede Koi servisinin Windows'taki adını kontrol edin (`Get-Service`). `*Koi*` ile eşleşmiyorsa `config.ps1` içindeki `$KoiServicePattern`'i düzeltin.
+İlk makinede AES servisinin Windows'taki adını kontrol edin (`Get-Service`). `*Koi*` ile eşleşmiyorsa `config.ps1` içindeki `$KoiServicePattern`'i düzeltin.
 
-Envanterin konsolda dolması için birkaç saat bekleyin.
+Inventory'nin konsolda dolması için birkaç saat bekleyin; extension'lar, paketler, MCP server'lar ve AI agent'lar görünmeli. Lab rehberini WS-USER01'de baştan sona bir kez uygulamak en iyi provadır.
 
-## 5. Kontrol et ve katılımcı listesini çıkar
+**Pilot sorunsuzsa çoğaltın:** `config.ps1`'de sayıları artırın (örn. `20` ve `2`) ve 02, 03, 04'ü tekrar çalıştırın. Script'ler var olan makineleri atlar.
+
+## 6. Kontrol et ve katılımcı listesini çıkar
 
 ```powershell
-.\05-check.ps1             # Koi servisi, npm/pip yönlendirmesi, komutlar.txt
-.\07-list-instances.ps1    # participants.csv: makine, RDP adresi, kullanıcı
+./05-check.ps1             # AES servisi, npm/pip yönlendirmesi, komutlar.txt
+./07-list-instances.ps1    # participants.csv: makine, RDP adresi, kullanıcı
 ```
 
-`participants.csv` dosyasında şifre sütununu doldurup katılımcılara dağıtabilirsiniz. `05-check.ps1`'i workshop sabahı da çalıştırın.
+`participants.csv` dosyasında şifre sütununu doldurup katılımcılara dağıtabilirsiniz. Workshop günü salonun IP'sini `aes-workshop-sg` security group'una RDP için ekleyin. `05-check.ps1`'i workshop sabahı da çalıştırın.
 
 ## Workshop'a kadar
 
 ```powershell
-.\08-power.ps1 -Action Stop    # hazırlık bittikten sonra
-.\08-power.ps1 -Action Start   # workshop sabahı
-.\07-list-instances.ps1        # IP'ler değiştiği için listeyi yenileyin
+./08-power.ps1 -Action Stop    # hazırlık bittikten sonra
+./08-power.ps1 -Action Start   # workshop sabahı
+./07-list-instances.ps1        # IP'ler değiştiği için listeyi yenileyin
 ```
 
 `komutlar.txt`'yi güncellerseniz AMI'yi yeniden almanıza gerek yok:
 
 ```powershell
-.\06-update-komutlar.ps1
+./06-update-komutlar.ps1
 ```
 
 ## Workshop sonrası
 
 ```powershell
-.\99-cleanup.ps1               # katılımcı makinelerini siler
-.\99-cleanup.ps1 -DeleteAmi    # AMI ve snapshot'ları da siler
+./99-cleanup.ps1               # katılımcı makinelerini siler
+./99-cleanup.ps1 -DeleteAmi    # AMI ve snapshot'ları da siler
 ```
 
 Base makineye dokunulmaz; ayrıca silmeniz gerekir.
@@ -165,6 +223,12 @@ Base makineye dokunulmaz; ayrıca silmeniz gerekir.
 | `npm install` engellenmesi gereken paketi kuruyor | `npm config get registry` Koi gateway'ini göstermeli; gösteriyorsa paketin npm global block list'te olduğunu ve tenant'ta code package prevention'ın açık olduğunu kontrol edin |
 | SSM'de makine `Online` olmuyor | Instance'ın IAM profile'ı (`00-create-ssm-role.ps1`) ve internete çıkışı olmalı |
 | `04-install-koi.ps1` "servis bulunamadı" diyor | `config.ps1` içindeki `$KoiServicePattern`'i gerçek servis adına göre düzeltin |
+| `net localgroup ... ` → `The user name could not be found` (2221) | Kullanıcı oluşmamış; büyük ihtimalle şifre kurallara uymadı. 1. adımdaki `New-LocalUser` komutlarını kullanın. |
+| AWS girişinde **IAM user sign in** ekranı | Hesabı e-postayla açtıysanız **Sign in using root user email**'e tıklayın |
+| Kurulumda `PowerShell execution policy` adımı `Security error` | Eski script sürümünde yanlış alarmdı; ayar uygulanır. `Get-ExecutionPolicy -List`'te `LocalMachine` = `RemoteSigned` olmalı. |
+| `/koi` sayfasında sertifika hatası | Koi Root CA kurulmamış: `Get-ChildItem Cert:\LocalMachine\Root \| Where-Object Subject -like "*Koi Root CA*"` |
+| `/koi` yerine normal marketplace sayfası | PAC uygulanmamış ya da tarayıcı yeniden başlatılmamış. Windows Ayarlar → Network & Internet → Proxy → **Use setup script** açık olmalı. |
+| Cursor / Claude Desktop giriş istiyor | Base makinede giriş yapmayın; pencereyi kapatın. Inventory için kurulu olmaları yeterli. |
 | Chrome kurulumu checksum hatası veriyor | Script Chrome için checksum kontrolünü atlıyor; güncel script'i kullandığınızdan emin olun |
 
 ## Bu repoda olmayanlar
