@@ -150,6 +150,8 @@ pwsh
 | `$SubnetId` | **Networking** sekmesi → **Subnet ID** (`subnet-...`) |
 | `$SecurityGroupId` | **Security** sekmesi → `aes-workshop-sg` ID'si (`sg-...`) |
 | `$ParticipantCount` / `$SpareCount` | **İlk denemede `1` ve `0`.** Pilot makine sorunsuzsa artırın (5. adım). |
+| `$VolumeSizeGiB` | Klonların disk boyutu (varsayılan 60). AMI diskinden büyükse disk büyütülür, C: `03` adımında otomatik genişletilir. |
+| `$InstanceType` | Varsayılan `t3.large`. Base makine farklı tipte olabilir; AMI tipi taşımaz. |
 
 **`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın.
 

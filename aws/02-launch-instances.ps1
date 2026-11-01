@@ -8,14 +8,26 @@
 Assert-Configured @("SubnetId", "SecurityGroupId", "InstanceType", "InstanceProfile")
 
 # AMI: config'te yoksa en yeni workshop AMI'si
-$ami = $AmiId
-if (-not $ami) {
+if ($AmiId) {
+    $latest = (Invoke-Aws @("ec2", "describe-images", "--image-ids", $AmiId)).Images | Select-Object -First 1
+} else {
     $imgs = Invoke-Aws @("ec2", "describe-images", "--owners", "self",
         "--filters", "Name=tag:Workshop,Values=$WorkshopTag", "Name=state,Values=available")
     $latest = $imgs.Images | Sort-Object CreationDate -Descending | Select-Object -First 1
-    if (-not $latest) { throw "Workshop AMI'si bulunamadi. Once 01-create-ami.ps1 calistirin." }
-    $ami = $latest.ImageId
-    Write-Host "AMI: $ami ($($latest.Name))" -ForegroundColor Cyan
+}
+if (-not $latest) { throw "Workshop AMI'si bulunamadi. Once 01-create-ami.ps1 calistirin." }
+$ami = $latest.ImageId
+Write-Host "AMI: $ami ($($latest.Name))" -ForegroundColor Cyan
+
+# Disk boyutu: VolumeSizeGiB AMI'deki diskten buyukse kok disk buyutulerek acilir
+$blockFile = $null
+if ($VolumeSizeGiB) {
+    $root    = $latest.RootDeviceName
+    $amiSize = ($latest.BlockDeviceMappings | Where-Object { $_.DeviceName -eq $root }).Ebs.VolumeSize
+    if ([int]$VolumeSizeGiB -gt [int]$amiSize) {
+        $blockFile = New-JsonArgFile @(@{ DeviceName = $root; Ebs = @{ VolumeSize = [int]$VolumeSizeGiB; VolumeType = "gp3"; DeleteOnTermination = $true } })
+        Write-Host "Disk: $amiSize GiB -> $VolumeSizeGiB GiB" -ForegroundColor Cyan
+    }
 }
 
 $existing = @((Get-WorkshopInstances) | ForEach-Object { $_.Name })
@@ -50,7 +62,8 @@ for ($i = 1; $i -le $total; $i++) {
         "--iam-instance-profile", "Name=$InstanceProfile",
         "--metadata-options", "HttpTokens=required,HttpEndpoint=enabled",
         "--tag-specifications", (New-JsonArgFile $tags))
-    if ($KeyName) { $argList += @("--key-name", $KeyName) }
+    if ($KeyName)   { $argList += @("--key-name", $KeyName) }
+    if ($blockFile) { $argList += @("--block-device-mappings", $blockFile) }
 
     # Yeni olusturulan IAM profile'in yayilmasi birkac saniye surebilir
     for ($try = 1; $try -le 4; $try++) {

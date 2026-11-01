@@ -22,6 +22,11 @@ foreach ($inst in $instances) {
     # exit 3010: SSM makineyi yeniden baslatir ve script'i tekrar calistirir.
     # Ikinci calismada hostname dogru oldugu icin exit 0 ile biter.
     $script = @"
+# Disk AMI'den buyuk acildiysa C: bolumunu bos alana genislet
+try {
+    `$max = (Get-PartitionSupportedSize -DriveLetter C).SizeMax
+    if (`$max -gt (Get-Partition -DriveLetter C).Size + 1GB) { Resize-Partition -DriveLetter C -Size `$max; Write-Output "C: genisletildi" }
+} catch { Write-Output "C: genisletilemedi: `$(`$_.Exception.Message)" }
 `$new = '$($inst.Name)'
 if (`$env:COMPUTERNAME -eq `$new) { Write-Output "Hostname: `$new"; exit 0 }
 Rename-Computer -NewName `$new -Force

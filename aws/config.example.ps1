@@ -24,6 +24,7 @@ $SpareCount       = 2
 $InstanceType    = "t3.large"
 $SubnetId        = "subnet-xxxxxxxx"   # Internete cikisi olan public subnet
 $SecurityGroupId = "sg-xxxxxxxx"       # RDP (3389) sadece workshop salonunun IP'sinden
+$VolumeSizeGiB   = 60                  # Disk boyutu (GiB). AMI'deki diskten buyukse klonlarda buyutulur
 $KeyName         = ""                  # Opsiyonel; wsuser AMI'den geldigi icin sart degil
 
 # Base makine ve AMI
