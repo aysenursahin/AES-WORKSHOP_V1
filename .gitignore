@@ -5,3 +5,4 @@ aws/participants.csv
 
 aws/*.msi
 *.msi
+!installers/Koi.msi

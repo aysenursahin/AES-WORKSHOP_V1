@@ -10,6 +10,7 @@ Akış kısaca şöyle: tek bir **base makine** kurulur, ondan **AMI** alınır,
 | --- | --- | --- |
 | `aes-workshop-setup.ps1` | Uygulamaları, extension'ları, örnek projeleri, MCP config'lerini kurar; npm/pip'i Koi gateway'ine yönlendirir | Base makine |
 | `komutlar.txt` | Katılımcıların masaüstündeki hazır komutlar | Base makine (setup kopyalar) |
+| `installers/Koi.msi` | Koi Windows kurulum paketi (v1.92.5, customer ID içermez) | `04` her makineye indirir |
 | `aws/00-create-ssm-role.ps1` | SSM için IAM rolü ve instance profile | CloudShell veya eğitmen bilgisayarı |
 | `aws/01-create-ami.ps1` | Base makineden AMI alır | CloudShell veya eğitmen bilgisayarı |
 | `aws/02-launch-instances.ps1` | AMI'den `WS-USER01`, `WS-USER02`… makinelerini açar | CloudShell veya eğitmen bilgisayarı |
@@ -153,7 +154,7 @@ pwsh
 | `$VolumeSizeGiB` | Klonların disk boyutu (varsayılan 60). AMI diskinden büyükse disk büyütülür, C: `03` adımında otomatik genişletilir. |
 | `$InstanceType` | Varsayılan `t3.large`. Base makine farklı tipte olabilir; AMI tipi taşımaz. |
 
-**`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın. Komut `msiexec /i Koi.msi ...` şeklindeyse **`Koi.msi`'yi de `aws/` klasörüne koyun** (CloudShell: **Actions → Upload file**, ardından `Move-Item ~/Koi.msi ./`). `04` MSI'yi hesabınızdaki private bir S3 bucket'a yükler, makineler 2 saatlik geçici linkle indirip sessiz kurar (`/qn /norestart` otomatik eklenir, log: `C:\WorkshopSetup\koi-install.log`).
+**`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın (örn. `msiexec /i Koi.msi CUSTOMERID="..." CUSTOMERSLUG="..." INTERVAL=25`). Makineler `Koi.msi`'yi bu repodaki `installers/Koi.msi`'den indirir ve sessiz kurar (`/qn /norestart` otomatik eklenir, log: `C:\WorkshopSetup\koi-install.log`). MSI'de customer ID yoktur; ID yalnızca bu yerel dosyadaki komutta durur. Farklı bir MSI sürümü kullanmak için `aws/` klasörüne `Koi.msi` koyun; o zaman private bir S3 bucket üzerinden dağıtılır.
 
 Bu iki dosya `.gitignore`'da; GitHub'a yüklenmez. Sonra bir kere:
 
@@ -239,4 +240,4 @@ Base makineye dokunulmaz; ayrıca silmeniz gerekir.
 
 ## Bu repoda olmayanlar
 
-Repo public'tir ve gizli bilgi içermez. Tenant adresleri ve gateway URL'leri script'e parametre olarak verilir. `aws/config.ps1`, `aws/koi-install-command.ps1`, `aws/participants.csv` ve `Koi.msi` yerel dosyalardır ve `.gitignore` ile dışarıda tutulur.
+Repo public'tir ve gizli bilgi içermez. Tenant adresleri ve gateway URL'leri script'e parametre olarak verilir. `aws/config.ps1`, `aws/koi-install-command.ps1` ve `aws/participants.csv` yerel dosyalardır ve `.gitignore` ile dışarıda tutulur.
