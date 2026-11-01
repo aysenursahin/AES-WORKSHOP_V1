@@ -17,7 +17,7 @@ Akış kısaca şöyle: tek bir **base makine** kurulur, ondan **AMI** alınır,
 | `aws/03-rename-hosts.ps1` | Her makinenin hostname'ini kendi adına çevirir | CloudShell veya eğitmen bilgisayarı |
 | `aws/04-install-koi.ps1` | Koi'yi tüm makinelere kurar | CloudShell veya eğitmen bilgisayarı |
 | `aws/05-check.ps1` | Tüm makinelerin hazır olduğunu kontrol eder | CloudShell veya eğitmen bilgisayarı |
-| `aws/06-update-komutlar.ps1` | Güncel `komutlar.txt`'yi tüm masaüstlerine dağıtır | CloudShell veya eğitmen bilgisayarı |
+| `aws/06-update-komutlar.ps1` | Güncel `komutlar.txt` ve "AES Lab Rehberi" kısayolunu tüm masaüstlerine dağıtır | CloudShell veya eğitmen bilgisayarı |
 | `aws/07-list-instances.ps1` | Katılımcı listesini (`participants.csv`) çıkarır | CloudShell veya eğitmen bilgisayarı |
 | `aws/08-power.ps1` | Makineleri başlatır / durdurur | CloudShell veya eğitmen bilgisayarı |
 | `aws/99-cleanup.ps1` | Workshop sonrası makineleri (ve istenirse AMI'yi) siler | CloudShell veya eğitmen bilgisayarı |

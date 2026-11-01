@@ -61,7 +61,10 @@ param(
     # Koi PAC dosyasi URL'i (deployment portal > Network Integration).
     # Koi konsolunda "Deploy with KOI" seciliyse PAC'i Koi'nin script paketi kurar;
     # o durumda bos birakin.
-    [string]$PacUrl = ""
+    [string]$PacUrl = "",
+
+    # Lab rehberinin web surumu; masaustune kisayol olarak konur.
+    [string]$LabGuideUrl = "https://aes-workshop.onrender.com"
 )
 
 # ---------------------------------------------------------------------------
@@ -362,6 +365,10 @@ Invoke-Step "Masaustu: komutlar.txt" {
 
 Invoke-Step "Masaustu: AES konsol kisayolu" {
     Write-TextFile (Join-Path $Desktop "AES Konsol.url") "[InternetShortcut]`r`nURL=$KoiConsoleUrl`r`n"
+}
+
+Invoke-Step "Masaustu: Lab Rehberi kisayolu" {
+    Write-TextFile (Join-Path $Desktop "AES Lab Rehberi.url") "[InternetShortcut]`r`nURL=$LabGuideUrl`r`n"
 }
 
 Invoke-Step "Masaustu: proje terminali kisayolu" {

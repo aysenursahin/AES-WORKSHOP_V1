@@ -1,6 +1,7 @@
 AES WORKSHOP - HAZIR KOMUTLAR
 =============================
 Komutları kopyalayıp masaüstündeki "Proje Terminali" penceresine yapıştırın.
+Lab rehberi: https://aes-workshop.onrender.com (masaüstündeki "AES Lab Rehberi" kısayolu)
 
 
 [Bölüm 0] Makinenin hostname'i

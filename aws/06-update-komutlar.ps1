@@ -1,8 +1,9 @@
 # ---------------------------------------------------------------------------
-# 06 - komutlar.txt'yi GitHub'dan cekip tum makinelerin masaustune yazar
+# 06 - Masaustu dosyalarini tum makinelerde gunceller:
+#   - komutlar.txt (GitHub'dan)
+#   - "AES Lab Rehberi" kisayolu (LabGuideUrl)
 #
-# Repodaki komutlar.txt'yi guncelledikten sonra AMI'yi yeniden almadan
-# tum makinelere dagitmak icin kullanin.
+# AMI'yi yeniden almadan tum makinelere dagitmak icin kullanin.
 # Not: GitHub raw icerigi birkac dakika onbellekte kalabilir.
 # ---------------------------------------------------------------------------
 param([string[]]$Only)
@@ -19,8 +20,12 @@ $script = @"
 `$dest = 'C:\Users\$WorkshopUser\Desktop\komutlar.txt'
 Invoke-WebRequest -UseBasicParsing -Uri '$RepoRawBase/komutlar.txt' -OutFile `$dest
 Write-Output "Guncellendi: `$dest (`$((Get-Item `$dest).Length) byte)"
+`$guide = '$(if ($LabGuideUrl) { $LabGuideUrl } else { "https://aes-workshop.onrender.com" })'
+`$lnk = 'C:\Users\$WorkshopUser\Desktop\AES Lab Rehberi.url'
+[IO.File]::WriteAllText(`$lnk, "[InternetShortcut]``r``nURL=`$guide``r``n")
+Write-Output "Kisayol: `$lnk -> `$guide"
 "@
 
-Write-Host "==> komutlar.txt dagitiliyor: $($instances.Count) makine" -ForegroundColor Cyan
-$sent = Send-SsmScript -InstanceIds @($instances | ForEach-Object { $_.InstanceId }) -Script $script -Comment "update komutlar.txt" -ExecutionTimeoutSeconds 300
+Write-Host "==> Masaustu dosyalari guncelleniyor: $($instances.Count) makine" -ForegroundColor Cyan
+$sent = Send-SsmScript -InstanceIds @($instances | ForEach-Object { $_.InstanceId }) -Script $script -Comment "update desktop" -ExecutionTimeoutSeconds 300
 Wait-SsmCommands -Sent $sent -Instances $instances -TimeoutMinutes 10 | Out-Null
