@@ -33,7 +33,7 @@ Katılımcılara dağıtılan rehber iki biçimde:
 
 **AWS**
 - Bir AWS hesabı ve konsola giriş. Hesabı e-postanızla açtıysanız giriş ekranında **Sign in using root user email** seçin; **IAM user** ekranı Account ID ve kullanıcı adı ister.
-- Tüm kaynaklar aynı bölgede, örnek: **Europe (Frankfurt) eu-central-1**
+- Tüm kaynaklar aynı bölgede, örnek: **Europe (Stockholm) eu-north-1**
 
 **AES (Koi) tenant'ı**
 - Code package prevention açık olmalı (Koi irtibat kişisi açar)
@@ -139,13 +139,13 @@ pwsh
 **Seçenek B: Kendi bilgisayarınız.**
 - **Windows:** [AWS CLI v2](https://awscli.amazonaws.com/AWSCLIV2.msi) kurun. Repoyu `git clone` ile ya da zip olarak indirin. Script'lerden önce `Set-ExecutionPolicy Bypass -Scope Process -Force`.
 - **Mac:** `brew install awscli` ve `brew install --cask powershell`, sonra `pwsh`. `Set-ExecutionPolicy` gerekmez; yollarda `/` kullanın.
-- Her ikisinde de: IAM → Users → kullanıcınız → **Security credentials → Create access key**, ardından `aws configure` (bölge: `eu-central-1`, çıktı: `json`).
+- Her ikisinde de: IAM → Users → kullanıcınız → **Security credentials → Create access key**, ardından `aws configure` (bölge: `eu-north-1`, çıktı: `json`).
 
 **`config.ps1`** (değerler EC2'de base makinenin detaylarında):
 
 | Ayar | Nereden |
 | --- | --- |
-| `$Region` | Base makinenin bölgesi, örn. `eu-central-1` |
+| `$Region` | Base makinenin bölgesi, örn. `eu-north-1` |
 | `$BaseInstanceId` | **Instance ID** (`i-...`) |
 | `$SubnetId` | **Networking** sekmesi → **Subnet ID** (`subnet-...`) |
 | `$SecurityGroupId` | **Security** sekmesi → `aes-workshop-sg` ID'si (`sg-...`) |
