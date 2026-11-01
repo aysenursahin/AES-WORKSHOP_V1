@@ -1,0 +1,12 @@
+# Render Blueprint: lab rehberinin web surumu (statik site)
+# Render > New > Blueprint > bu repoyu secin.
+services:
+  - type: web
+    name: aes-workshop
+    runtime: static
+    buildCommand: echo "Statik site, derleme gerekmiyor"
+    staticPublishPath: ./site
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
