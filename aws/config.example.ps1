@@ -8,7 +8,7 @@
 
 # AWS bolgesi ve AWS CLI profili
 $Region     = "eu-central-1"
-$AwsProfile = "default"
+$AwsProfile = ""   # CloudShell'de bos birakin; kendi PC'nizde profil adi (or. "default")
 
 # Workshop kaynaklarini isaretleyen tag. Script'ler sadece bu tag'li
 # instance'lara ve AMI'lere dokunur.
