@@ -129,7 +129,7 @@ Sondaki kontrol listesinde her satır `[OK]` olmalı; özellikle **Koi Root CA g
 
 ```bash
 git clone https://github.com/aysenursahin/AES-WORKSHOP_V1.git
-cd aes-workshop_v1/aws
+cd AES-WORKSHOP_V1/aws
 cp config.example.ps1 config.ps1
 cp koi-install-command.example.ps1 koi-install-command.ps1
 nano config.ps1                     # kaydet: Ctrl+O, Enter; çık: Ctrl+X
