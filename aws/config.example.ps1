@@ -43,4 +43,4 @@ $WorkshopUser = "wsuser"
 $KoiServicePattern = "*Koi*"
 
 # Repo'nun raw adresi (06-update-komutlar.ps1 buradan ceker)
-$RepoRawBase = "https://raw.githubusercontent.com/aysenursahin/aes-workshop_v1/main"
+$RepoRawBase = "https://raw.githubusercontent.com/aysenursahin/AES-WORKSHOP_V1/main"

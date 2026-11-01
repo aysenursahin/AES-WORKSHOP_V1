@@ -83,9 +83,9 @@ Administrator oturumunu kapatın ve **`wsuser` ile** tekrar bağlanın (Windows 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Set-ExecutionPolicy Bypass -Scope Process -Force
 $zip = "$env:TEMP\aes-workshop.zip"
-irm https://github.com/aysenursahin/aes-workshop_v1/archive/refs/heads/main.zip -OutFile $zip
+irm https://github.com/aysenursahin/AES-WORKSHOP_V1/archive/refs/heads/main.zip -OutFile $zip
 Expand-Archive $zip -DestinationPath "$env:TEMP\aes-workshop" -Force
-& "$env:TEMP\aes-workshop\aes-workshop_v1-main\aes-workshop-setup.ps1" `
+& "$env:TEMP\aes-workshop\AES-WORKSHOP_V1-main\aes-workshop-setup.ps1" `
     -KoiConsoleUrl  "https://<konsol-adresi>" `
     -NpmGatewayUrl  "https://koi-npmjs-<customer_subdomain>.gateway.koi.security" `
     -PypiGatewayUrl "https://koi-pypi-<customer_subdomain>.gateway.koi.security" `
@@ -127,7 +127,7 @@ Sondaki kontrol listesinde her satır `[OK]` olmalı; özellikle **Koi Root CA g
 **Seçenek A: AWS CloudShell (önerilen).** AWS konsolunda sağ üstteki **`>_`** simgesi. AWS CLI ve PowerShell hazır gelir, hesabınızla oturum açıktır; access key gerekmez. Bölgenin doğru olduğundan emin olun.
 
 ```bash
-git clone https://github.com/aysenursahin/aes-workshop_v1.git
+git clone https://github.com/aysenursahin/AES-WORKSHOP_V1.git
 cd aes-workshop_v1/aws
 cp config.example.ps1 config.ps1
 cp koi-install-command.example.ps1 koi-install-command.ps1
