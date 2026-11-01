@@ -43,5 +43,9 @@ $WorkshopUser = "wsuser"
 # Ilk makinede Koi'yi kurduktan sonra kontrol edip gerekirse duzeltin.
 $KoiServicePattern = "*Koi*"
 
+# Koi.msi'nin yuklenecegi private S3 bucket. Bos birakilirsa
+# aes-workshop-<hesap-no>-<bolge> adiyla otomatik olusturulur.
+$KoiMsiBucket = ""
+
 # Repo'nun raw adresi (06-update-komutlar.ps1 buradan ceker)
 $RepoRawBase = "https://raw.githubusercontent.com/aysenursahin/AES-WORKSHOP_V1/main"

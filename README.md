@@ -153,7 +153,7 @@ pwsh
 | `$VolumeSizeGiB` | Klonların disk boyutu (varsayılan 60). AMI diskinden büyükse disk büyütülür, C: `03` adımında otomatik genişletilir. |
 | `$InstanceType` | Varsayılan `t3.large`. Base makine farklı tipte olabilir; AMI tipi taşımaz. |
 
-**`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın.
+**`koi-install-command.ps1`:** Deployment Portal'daki Windows kurulum komutunu yapıştırın. Komut `msiexec /i Koi.msi ...` şeklindeyse **`Koi.msi`'yi de `aws/` klasörüne koyun** (CloudShell: **Actions → Upload file**, ardından `Move-Item ~/Koi.msi ./`). `04` MSI'yi hesabınızdaki private bir S3 bucket'a yükler, makineler 2 saatlik geçici linkle indirip sessiz kurar (`/qn /norestart` otomatik eklenir, log: `C:\WorkshopSetup\koi-install.log`).
 
 Bu iki dosya `.gitignore`'da; GitHub'a yüklenmez. Sonra bir kere:
 
@@ -239,4 +239,4 @@ Base makineye dokunulmaz; ayrıca silmeniz gerekir.
 
 ## Bu repoda olmayanlar
 
-Repo public'tir ve gizli bilgi içermez. Tenant adresleri ve gateway URL'leri script'e parametre olarak verilir. `aws/config.ps1`, `aws/koi-install-command.ps1` ve `aws/participants.csv` yerel dosyalardır ve `.gitignore` ile dışarıda tutulur.
+Repo public'tir ve gizli bilgi içermez. Tenant adresleri ve gateway URL'leri script'e parametre olarak verilir. `aws/config.ps1`, `aws/koi-install-command.ps1`, `aws/participants.csv` ve `Koi.msi` yerel dosyalardır ve `.gitignore` ile dışarıda tutulur.

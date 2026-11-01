@@ -2,3 +2,6 @@
 aws/config.ps1
 aws/koi-install-command.ps1
 aws/participants.csv
+
+aws/*.msi
+*.msi
