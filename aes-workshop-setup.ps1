@@ -141,7 +141,8 @@ Invoke-Step "PowerShell execution policy: RemoteSigned" {
     # Process kapsaminda Bypass varken PowerShell, LocalMachine ayarini uyguladigi
     # halde "daha dar kapsamli ayar bunu geciersiz kiliyor" uyarisini hata olarak
     # verir. Uyariyi yok sayip sonucu dogrudan kontrol et.
-    Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force -ErrorAction SilentlyContinue
+    # Bu uyari "terminating" hata olarak geldigi icin -ErrorAction yetmez; try/catch gerekir.
+    try { Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force -ErrorAction Stop } catch { }
     $lm = Get-ExecutionPolicy -Scope LocalMachine
     if (@("RemoteSigned", "Unrestricted", "Bypass") -notcontains "$lm") {
         throw "LocalMachine execution policy: $lm"
