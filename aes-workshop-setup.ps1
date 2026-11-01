@@ -138,7 +138,14 @@ if ($DisableWindowsUpdate) {
 # Katilimcilarin yeni PowerShell pencerelerinde npm/codex gibi komutlari
 # calistirabilmesi icin (aksi halde "running scripts is disabled" hatasi)
 Invoke-Step "PowerShell execution policy: RemoteSigned" {
-    Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
+    # Process kapsaminda Bypass varken PowerShell, LocalMachine ayarini uyguladigi
+    # halde "daha dar kapsamli ayar bunu geciersiz kiliyor" uyarisini hata olarak
+    # verir. Uyariyi yok sayip sonucu dogrudan kontrol et.
+    Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force -ErrorAction SilentlyContinue
+    $lm = Get-ExecutionPolicy -Scope LocalMachine
+    if (@("RemoteSigned", "Unrestricted", "Bypass") -notcontains "$lm") {
+        throw "LocalMachine execution policy: $lm"
+    }
 }
 
 # ---------------------------------------------------------------------------
