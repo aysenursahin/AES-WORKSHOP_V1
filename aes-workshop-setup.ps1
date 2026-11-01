@@ -49,7 +49,18 @@ param(
     # Koi PyPI gateway adresi, /simple OLMADAN (deployment portal'da yazar).
     # Or: https://koi-pypi-<customer_subdomain>.gateway.koi.security
     # Bos birakilirsa pip yonlendirmesi atlanir.
-    [string]$PypiGatewayUrl = ""
+    [string]$PypiGatewayUrl = "",
+
+    # Koi Root CA dosyasinin yolu (.pem). Deployment portal > Network Integration >
+    # Establish Network Trust > Download CA. Chrome Web Store / VS Code Marketplace
+    # trafigi Koi proxy'sinden gecerken makinenin bu baglantiya guvenmesi icin gerekir.
+    # Bos birakilirsa atlanir.
+    [string]$KoiRootCaFile = "",
+
+    # Koi PAC dosyasi URL'i (deployment portal > Network Integration).
+    # Koi konsolunda "Deploy with KOI" seciliyse PAC'i Koi'nin script paketi kurar;
+    # o durumda bos birakin.
+    [string]$PacUrl = ""
 )
 
 # ---------------------------------------------------------------------------
@@ -298,6 +309,27 @@ if ($PypiGatewayUrl) {
 }
 
 # ---------------------------------------------------------------------------
+# C6. Marketplace trafigi: Koi Root CA ve PAC dosyasi (Bolum 1-2)
+# Kurulumlar bittikten SONRA yapilir; boylece hazirlik sirasindaki extension
+# kurulumlari Koi proxy'sinden gecmez.
+# ---------------------------------------------------------------------------
+if ($KoiRootCaFile) {
+    Invoke-Step "Koi Root CA -> Trusted Root Certification Authorities" {
+        if (-not (Test-Path $KoiRootCaFile)) { throw "CA dosyasi bulunamadi: $KoiRootCaFile" }
+        Invoke-Native "certutil.exe" @("-addstore", "-f", "Root", $KoiRootCaFile)
+    }
+} else {
+    Write-Host "`n==> Koi Root CA verilmedi, atlandi (Bolum 1-2 icin gerekli)." -ForegroundColor Yellow
+}
+
+if ($PacUrl) {
+    Invoke-Step "PAC dosyasi (otomatik proxy yapilandirmasi)" {
+        $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+        Set-ItemProperty -Path $key -Name "AutoConfigURL" -Value $PacUrl
+    }
+}
+
+# ---------------------------------------------------------------------------
 # D. Bolum 3 hazirligi ve masaustu
 # ---------------------------------------------------------------------------
 Invoke-Step "Masaustu: komutlar.txt" {
@@ -359,6 +391,14 @@ if ($PypiGatewayUrl) {
         $venvCfg = (& $venvPy -m pip config list 2>&1 | Out-String)
         $checks["venv pip = Koi gateway"] = ($venvCfg -like "*gateway.koi.security*")
     }
+}
+if ($KoiRootCaFile -and (Test-Path $KoiRootCaFile)) {
+    $caThumb = (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($KoiRootCaFile)).Thumbprint
+    $checks["Koi Root CA guvenilir"] = [bool](Get-ChildItem Cert:\LocalMachine\Root | Where-Object { $_.Thumbprint -eq $caThumb })
+}
+if ($PacUrl) {
+    $pac = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue).AutoConfigURL
+    $checks["PAC dosyasi ayarli"] = ($pac -eq $PacUrl)
 }
 foreach ($k in $checks.Keys) {
     $color = if ($checks[$k]) { "Green" } else { "Red" }

@@ -62,8 +62,13 @@ Expand-Archive $zip -DestinationPath "$env:TEMP\aes-workshop" -Force
 & "$env:TEMP\aes-workshop\aes-workshop_v1-main\aes-workshop-setup.ps1" `
     -KoiConsoleUrl  "https://<konsol-adresi>" `
     -NpmGatewayUrl  "https://koi-npmjs-<customer_subdomain>.gateway.koi.security" `
-    -PypiGatewayUrl "https://koi-pypi-<customer_subdomain>.gateway.koi.security"
+    -PypiGatewayUrl "https://koi-pypi-<customer_subdomain>.gateway.koi.security" `
+    -KoiRootCaFile  "$env:USERPROFILE\Downloads\<koi-root-ca>.pem"
 ```
+
+`-KoiRootCaFile`: Koi Root CA dosyası. Base makinenin tarayıcısından Deployment Portal → **Network Integration → Establish Network Trust → Download CA** ile indirin. Chrome Web Store ve VS Code Marketplace'teki Request Approval deneyimi (lab rehberi Bölüm 1–2) için gereklidir; npm/pip için gerekmez.
+
+**PAC dosyası:** AES konsolunda **Settings → Advanced Settings → Network integration (Proxy)** altında **Deploy with KOI** seçiliyse PAC dosyasını Koi'nin script paketi kendisi kurar. Kendiniz dağıtmak isterseniz script'e `-PacUrl "<PAC URL>"` ekleyin (Deployment Portal → Network Integration).
 
 > Script'i **`wsuser` ile** çalıştırın. VS Code extension'ları, MCP config'leri ve skill dosyası script'i çalıştıran kullanıcının profiline yazılır.
 
