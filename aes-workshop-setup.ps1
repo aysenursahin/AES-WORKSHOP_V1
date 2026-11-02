@@ -294,6 +294,12 @@ her dosyanin ne ise yaradigini tek cumleyle ozetle.
     Write-TextFile (Join-Path $env:USERPROFILE ".claude\skills\proje-ozeti\SKILL.md") $skill
 }
 
+Invoke-Step "Proje klasoru yazma yetkisi ($env:USERNAME)" {
+    # Klasorler yonetici olarak olusturuldugu icin normal yetkili terminal
+    # (masaustundeki Proje Terminali) node_modules'a yazamayabilir.
+    Invoke-Native "icacls.exe" @($ProjectRoot, "/grant", "$($env:USERNAME):(OI)(CI)M", "/T", "/C", "/Q")
+}
+
 # ---------------------------------------------------------------------------
 # C5. Koi gateway yonlendirmesi (npm / pip)
 # Ornek projeler kurulduktan SONRA yapilir; boylece hazirlik kurulumlari

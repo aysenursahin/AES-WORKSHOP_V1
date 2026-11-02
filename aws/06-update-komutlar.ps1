@@ -2,6 +2,7 @@
 # 06 - Masaustu dosyalarini tum makinelerde gunceller:
 #   - komutlar.txt (GitHub'dan)
 #   - "AES Lab Rehberi" kisayolu (LabGuideUrl)
+#   - C:\Projeler icin wsuser yazma yetkisi (npm install yonetici gerektirmesin)
 #
 # AMI'yi yeniden almadan tum makinelere dagitmak icin kullanin.
 # Not: GitHub raw icerigi birkac dakika onbellekte kalabilir.
@@ -24,6 +25,10 @@ Write-Output "Guncellendi: `$dest (`$((Get-Item `$dest).Length) byte)"
 `$lnk = 'C:\Users\$WorkshopUser\Desktop\AES Lab Rehberi.url'
 [IO.File]::WriteAllText(`$lnk, "[InternetShortcut]``r``nURL=`$guide``r``n")
 Write-Output "Kisayol: `$lnk -> `$guide"
+if (Test-Path 'C:\Projeler') {
+    icacls.exe 'C:\Projeler' /grant '${WorkshopUser}:(OI)(CI)M' /T /C /Q | Out-Null
+    Write-Output "C:\Projeler: $WorkshopUser icin yazma yetkisi verildi"
+}
 "@
 
 Write-Host "==> Masaustu dosyalari guncelleniyor: $($instances.Count) makine" -ForegroundColor Cyan
